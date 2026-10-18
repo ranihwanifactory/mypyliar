@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>비밀탐정 라이어 게임 🕵️‍♂️</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'pop-yellow': '#FFDE59',
+                        'pop-pink': '#FF66C4',
+                        'pop-purple': '#8C52FF',
+                        'pop-blue': '#5271FF',
+                        'pop-green': '#00C9A7',
+                        'pop-orange': '#FF914D',
+                        'dark-card': '#1E1E2E'
+                    },
+                    fontFamily: {
+                        'jua': ['Jua', 'sans-serif'],
+                        'nanum': ['Nanum Gothic', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Jua', 'Nanum Gothic', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FF66C4 0%, #8C52FF 50%, #5271FF 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Mobile Phone Container Simulation */
+        .app-container {
+            width: 100%;
+            max-width: 440px;
+            height: 100vh;
+            max-height: 900px;
+            background: #181824;
+            color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        @media (min-width: 640px) {
+            .app-container {
+                height: 92vh;
+                border-radius: 40px;
+                border: 8px solid rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        /* Bouncy Button Effect */
+        .btn-bounce {
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
+        }
+        .btn-bounce:active {
+            transform: scale(0.92) !important;
+        }
+
+        /* Pop Art Cartoon Shadows */
+        .pop-shadow-purple {
+            box-shadow: 0px 8px 0px #5B21B6;
+        }
+        .pop-shadow-pink {
+            box-shadow: 0px 8px 0px #9D174D;
+        }
+        .pop-shadow-yellow {
+            box-shadow: 0px 8px 0px #B45309;
+        }
+        .pop-shadow-green {
+            box-shadow: 0px 8px 0px #047857;
+        }
+
+        /* 3D Card Flip Animation */
+        .flip-card {
+            background-color: transparent;
+            perspective: 1000px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Floating background particles */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.25;
+            animation: floatAnim 10s infinite linear;
+        }
+
+        @keyframes floatAnim {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        /* Pulsing & Glowing Animation */
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(255, 222, 89, 0.6)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 22px rgba(255, 222, 89, 0.9)); }
+        }
+        .pulse-glow {
+            animation: pulseGlow 2.5s infinite ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8C52FF;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- App Container -->
+    <div class="app-container">
+
+        <!-- Background Floating Deco Particles -->
+        <div class="particle text-2xl" style="top: 10%; left: 8%;">🕵️‍♂️</div>
+        <div class="particle text-3xl" style="top: 25%; right: 10%;">❓</div>
+        <div class="particle text-2xl" style="bottom: 20%; left: 12%;">🔍</div>
+        <div class="particle text-3xl" style="bottom: 35%; right: 8%;">⭐</div>
+
+        <!-- Sticky Header Bar -->
+        <header class="w-full px-5 py-3.5 bg-gray-900/80 backdrop-blur-md border-b border-gray-800 flex justify-between items-center z-30">
+            <div class="flex items-center gap-2.5 cursor-pointer" onclick="game.goHome()">
+                <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pop-pink to-pop-purple flex items-center justify-center text-xl shadow-md">
+                    🕵️‍♂️
+                </div>
+                <div>
+                    <h1 class="text-lg font-black text-white tracking-wide leading-none">라이어 탐정단</h1>
+                    <span class="text-[10px] text-pop-yellow font-bold uppercase tracking-widest">Kids & Friends</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Scoreboard Quick Modal Toggle -->
+                <button onclick="game.toggleScoreboard()" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-pop-yellow text-sm border border-gray-700 btn-bounce">
+                    <i class="fa-solid fa-trophy"></i>
+                </button>
+                <!-- Audio Sound FX Toggle -->
+                <button id="soundToggleBtn" onclick="game.toggleSound()" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-pop-pink text-sm border border-gray-700 btn-bounce">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dynamic Screen Content Area -->
+        <main id="mainScreen" class="flex-1 overflow-y-auto px-5 py-4 flex flex-col justify-between z-10 relative">
+            <!-- Screen content injected via JS -->
+        </main>
+
+        <!-- Dynamic Modal Container (For Word Add / Scoreboard / Rules) -->
+        <div id="modalOverlay" class="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-5 z-50 hidden transition-opacity duration-300 opacity-0">
+            <div id="modalContent" class="bg-gray-900 border-2 border-pop-purple rounded-3xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300 relative shadow-2xl">
+                <!-- Modal content injected dynamically -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        // --- Web Audio API Synthesizer (No External Audio Assets Required) ---
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playPop() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.08);
+            }
+
+            playFlip() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(250, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+
+            playTick() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(900, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.04);
+            }
+
+            playFanfare() {
+                if (!this.enabled) return;
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.12);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime + idx * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.12 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.12);
+                    osc.stop(this.ctx.currentTime + idx * 0.12 + 0.3);
+                });
+            }
+
+            playSuspense() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(400, this.ctx.currentTime + 1.2);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 1.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 1.2);
+            }
+        }
+
+        // --- Avatars Presets ---
+        const AVATARS = [
+            { id: 'bear', name: '곰돌이', emoji: '🐻', bg: 'bg-amber-500' },
+            { id: 'rabbit', name: '토끼', emoji: '🐰', bg: 'bg-pink-400' },
+            { id: 'fox', name: '여우', emoji: '🦊', bg: 'bg-orange-500' },
+            { id: 'puppy', name: '강아지', emoji: '🐶', bg: 'bg-yellow-500' },
+            { id: 'kitty', name: '고양이', emoji: '🐱', bg: 'bg-purple-400' },
+            { id: 'panda', name: '판다', emoji: '🐼', bg: 'bg-emerald-500' },
+            { id: 'hamster', name: '햄스터', emoji: '🐹', bg: 'bg-rose-400' },
+            { id: 'chick', name: '병아리', emoji: '🐥', bg: 'bg-amber-300' }
+        ];
+
+        // --- Default Categories & Keywords ---
+        const DEFAULT_CATEGORIES = [
+            {
+                id: 'animal',
+                title: '🐾 귀여운 동물',
+                color: 'from-amber-400 to-orange-500',
+                borderColor: 'border-amber-400',
+                words: ['사자', '토끼', '펭귄', '코끼리', '원숭이', '기린', '상어', '판다', '다람쥐', '캥거루', '치타', '부엉이', '하마', '악어']
+            },
+            {
+                id: 'food',
+                title: '🍔 맛있는 음식',
+                color: 'from-pink-400 to-rose-500',
+                borderColor: 'border-pink-400',
+                words: ['피자', '치킨', '떡볶이', '짜장면', '햄버거', '아이스크림', '김밥', '라면', '초밥', '핫도그', '솜사탕', '팝콘', '만두', '와플']
+            },
+            {
+                id: 'school',
+                title: '🏫 학교 & 문구',
+                color: 'from-blue-400 to-indigo-500',
+                borderColor: 'border-blue-400',
+                words: ['지우개', '연필깎이', '급식실', '체육복', '칠판', '책상', '알림장', '컴퍼스', '과학실', '운동장', '색종이', '필통', '실로폰', '돋보기']
+            },
+            {
+                id: 'game',
+                title: '🎮 재미있는 게임',
+                color: 'from-purple-400 to-violet-600',
+                borderColor: 'border-purple-400',
+                words: ['레고', '닌텐도', '보드게임', '슬라임', '드론', '축구공', '딱지치기', '루빅스큐브', '인형', '비눗방울', 'RC카', '팽이', '요요', '스케이트보드']
+            },
+            {
+                id: 'toon',
+                title: '🎬 애니 & 영화',
+                color: 'from-emerald-400 to-teal-600',
+                borderColor: 'border-emerald-400',
+                words: ['포켓몬', '겨울왕국', '스파이더맨', '미니언즈', '해리포터', '슈퍼마리오', '어벤져스', '토이스토리', '도라에몽', '브레드이발소', '캐치티니핑', '짱구', '피카츄']
+            },
+            {
+                id: 'job',
+                title: '🚀 신나는 직업',
+                color: 'from-yellow-400 to-amber-500',
+                borderColor: 'border-yellow-400',
+                words: ['소방관', '경찰관', '우주비행사', '의사', '요리사', '유튜버', '과학자', '운동선수', '선생님', '수의사', '마술사', '파일럿', '탐정', '화가']
+            }
+        ];
+
+        // --- Kid Hints Prompt List ---
+        const HINT_PROMPTS = [
+            "💡 '무슨 색깔인가요?' 질문해보기",
+            "💡 '어디서 볼 수 있는지' 힌트 주기",
+            "💡 '내가 좋아하는지' 느낀 점 말하기",
+            "💡 '크기가 얼마나 큰지' 설명하기",
+            "💡 '언제 필요한지' 힌트 주기",
+            "💡 '어떤 소리나 행동이 나는지' 표현하기"
+        ];
+
+        // --- Main Game Engine ---
+        class LiarGameApp {
+            constructor() {
+                this.sound = new SoundFX();
+                this.categories = JSON.parse(localStorage.getItem('liar_categories')) || DEFAULT_CATEGORIES;
+                
+                // State Data
+                this.players = [
+                    { id: 1, name: '민수', avatar: AVATARS[0], wins: 0 },
+                    { id: 2, name: '서연', avatar: AVATARS[1], wins: 0 },
+                    { id: 3, name: '준호', avatar: AVATARS[2], wins: 0 },
+                    { id: 4, name: '지우', avatar: AVATARS[3], wins: 0 }
+                ];
+                
+                this.selectedCategoryId = 'animal';
+                this.isBlankLiarMode = false;
+                
+                // Active Round State
+                this.secretWord = '';
+                this.liarIndex = -1;
+                this.currentAssignIdx = 0;
+                this.speechTurnIdx = 0;
+                this.votes = {}; // { playerId: targetPlayerId }
+                
+                // Timer
+                this.timerSeconds = 60;
+                this.timerInterval = null;
+
+                this.init();
+            }
+
+            init() {
+                this.renderSetupScreen();
+            }
+
+            toggleSound() {
+                this.sound.enabled = !this.sound.enabled;
+                const icon = document.getElementById('soundIcon');
+                const btn = document.getElementById('soundToggleBtn');
+                if (this.sound.enabled) {
+                    icon.className = 'fa-solid fa-volume-high';
+                    btn.classList.remove('opacity-50');
+                    this.sound.playPop();
+                } else {
+                    icon.className = 'fa-solid fa-volume-xmark';
+                    btn.classList.add('opacity-50');
+                }
+            }
+
+            goHome() {
+                this.sound.playPop();
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                this.renderSetupScreen();
+            }
+
+            // --- Modal Controls ---
+            openModal(htmlContent) {
+                const overlay = document.getElementById('modalOverlay');
+                const content = document.getElementById('modalContent');
+                content.innerHTML = htmlContent;
+                overlay.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                    content.classList.add('scale-100');
+                }, 10);
+            }
+
+            closeModal() {
+                const overlay = document.getElementById('modalOverlay');
+                const content = document.getElementById('modalContent');
+                overlay.classList.add('opacity-0');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+
+            toggleScoreboard() {
+                this.sound.playPop();
+                let html = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-pop-yellow flex items-center gap-2">
+                            <i class="fa-solid fa-trophy"></i> 친구들의 누적 명예의 전당
+                        </h3>
+                        <button onclick="game.closeModal()" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                `;
+
+                const sorted = [...this.players].sort((a,b) => b.wins - a.wins);
+                sorted.forEach((p, idx) => {
+                    let rankBadge = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🎗️';
+                    html += `
+                        <div class="flex justify-between items-center bg-gray-800 p-3 rounded-2xl border border-gray-700">
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg">${rankBadge}</span>
+                                <div class="w-8 h-8 rounded-full ${p.avatar.bg} flex items-center justify-center text-lg">${p.avatar.emoji}</div>
+                                <span class="font-bold text-white">${p.name}</span>
+                            </div>
+                            <span class="text-pop-yellow font-black text-lg">${p.wins} 승</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    </div>
+                    <button onclick="game.closeModal()" class="w-full mt-5 py-3 bg-pop-purple hover:bg-purple-600 font-bold rounded-2xl text-white pop-shadow-purple btn-bounce">
+                        확인 완료!
+                    </button>
+                `;
+                this.openModal(html);
+            }
+
+            // --- SCREEN 1: Setup & Settings ---
+            renderSetupScreen() {
+                const main = document.getElementById('mainScreen');
+                
+                let categoriesHtml = '';
+                this.categories.forEach(cat => {
+                    const isSelected = cat.id === this.selectedCategoryId;
+                    categoriesHtml += `
+                        <div onclick="game.selectCategory('${cat.id}')" 
+                             class="cursor-pointer p-3.5 rounded-2xl border-2 ${isSelected ? 'border-pop-yellow bg-gray-800 shadow-lg scale-[1.02]' : 'border-gray-800 bg-gray-900/60 opacity-80'} flex flex-col justify-between transition-all btn-bounce">
+                            <div class="text-sm font-bold text-white truncate mb-1">${cat.title}</div>
+                            <div class="flex justify-between items-center text-[11px] text-gray-400">
+                                <span>${cat.words.length}개 단어</span>
+                                ${isSelected ? '<span class="text-pop-yellow font-black">✓ 선택됨</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                let playersHtml = '';
+                this.players.forEach((p, idx) => {
+                    playersHtml += `
+                        <div class="flex items-center justify-between bg-gray-800/80 p-2.5 rounded-2xl border border-gray-700">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-full ${p.avatar.bg} flex items-center justify-center text-xl shadow-inner">
+                                    ${p.avatar.emoji}
+                                </div>
+                                <span class="font-bold text-white text-sm">${p.name}</span>
+                            </div>
+                            ${this.players.length > 3 ? `
+                                <button onclick="game.removePlayer(${p.id})" class="w-7 h-7 rounded-full bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white flex items-center justify-center text-xs btn-bounce">
+                                    <i class="fa-solid fa-minus"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                main.innerHTML = `
+                    <div class="space-y-4 pb-4">
+                        <!-- Hero Cartoon Banner -->
+                        <div class="bg-gradient-to-r from-pop-purple via-pop-pink to-pop-yellow p-0.5 rounded-3xl shadow-xl">
+                            <div class="bg-gray-900/90 rounded-[22px] p-4 flex items-center gap-4 relative overflow-hidden">
+                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pop-yellow to-pop-orange flex items-center justify-center text-3xl shadow-md shrink-0 pulse-glow">
+                                    🕵️‍♂️
+                                </div>
+                                <div>
+                                    <span class="bg-pop-pink text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Party Game</span>
+                                    <h2 class="text-xl font-black text-white leading-tight mt-1">거짓말쟁이를 찾아라!</h2>
+                                    <p class="text-xs text-gray-300 font-nanum mt-0.5">친구들 속에 숨어든 라이어는 누구일까요?</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Topic Categories Grid -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2 px-1">
+                                <h3 class="text-sm font-bold text-pop-yellow flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shapes"></i> 1. 단어 주제 선택
+                                </h3>
+                                <button onclick="game.openAddWordModal()" class="text-xs text-pop-pink hover:underline font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-plus-circle"></i> 단어 추가
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                ${categoriesHtml}
+                            </div>
+                        </div>
+
+                        <!-- Player List Settings -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2 px-1">
+                                <h3 class="text-sm font-bold text-pop-yellow flex items-center gap-1.5">
+                                    <i class="fa-solid fa-users"></i> 2. 참가자 (최소 3명)
+                                </h3>
+                                <button onclick="game.openAddPlayerModal()" class="text-xs text-pop-green font-bold flex items-center gap-1 hover:underline">
+                                    <i class="fa-solid fa-user-plus"></i> 친구 추가
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                ${playersHtml}
+                            </div>
+                        </div>
+
+                        <!-- Game Mode Options -->
+                        <div class="bg-gray-900/80 p-3.5 rounded-2xl border border-gray-800 flex justify-between items-center">
+                            <div>
+                                <div class="text-sm font-bold text-white flex items-center gap-1.5">
+                                    👻 블랭크 라이어 모드
+                                </div>
+                                <div class="text-[11px] text-gray-400 font-nanum">라이어에게 키워드 대신 '???' 표시</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="blankModeToggle" ${this.isBlankLiarMode ? 'checked' : ''} onchange="game.toggleBlankMode(this.checked)" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pop-pink"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Start Game Action Button -->
+                    <button onclick="game.startNewGame()" class="w-full py-4 bg-gradient-to-r from-pop-yellow to-pop-orange text-gray-950 font-black text-xl rounded-2xl pop-shadow-yellow btn-bounce flex items-center justify-center gap-2 mt-2">
+                        <span>🕵️‍♂️ 라이어 게임 시작!</span>
+                        <i class="fa-solid fa-play text-lg"></i>
+                    </button>
+                `;
+            }
+
+            selectCategory(catId) {
+                this.sound.playPop();
+                this.selectedCategoryId = catId;
+                this.renderSetupScreen();
+            }
+
+            toggleBlankMode(checked) {
+                this.sound.playPop();
+                this.isBlankLiarMode = checked;
+            }
+
+            openAddPlayerModal() {
+                this.sound.playPop();
+                const availableAvatars = AVATARS.filter(a => !this.players.some(p => p.avatar.id === a.id));
+                const nextAvatar = availableAvatars[0] || AVATARS[Math.floor(Math.random() * AVATARS.length)];
+
+                let html = `
+                    <h3 class="text-lg font-bold text-pop-yellow mb-3">✨ 새로운 친구 등록</h3>
+                    <input type="text" id="newPlayerNameInput" placeholder="친구 이름을 입력하세요" class="w-full bg-gray-800 border-2 border-pop-purple rounded-xl p-3 text-white focus:outline-none mb-4 text-center font-bold" maxlength="8">
+                    <div class="flex gap-2">
+                        <button onclick="game.closeModal()" class="w-1/2 py-3 bg-gray-800 text-gray-300 font-bold rounded-xl btn-bounce">취소</button>
+                        <button onclick="game.confirmAddPlayer('${nextAvatar.id}')" class="w-1/2 py-3 bg-pop-green text-gray-950 font-bold rounded-xl btn-bounce pop-shadow-green">등록하기</button>
+                    </div>
+                `;
+                this.openModal(html);
+                setTimeout(() => document.getElementById('newPlayerNameInput')?.focus(), 100);
+            }
+
+            confirmAddPlayer(avatarId) {
+                const input = document.getElementById('newPlayerNameInput');
+                const name = input ? input.value.trim() : '';
+                if (!name) return;
+
+                const avatar = AVATARS.find(a => a.id === avatarId) || AVATARS[0];
+                this.players.push({
+                    id: Date.now(),
+                    name: name,
+                    avatar: avatar,
+                    wins: 0
+                });
+
+                this.sound.playFanfare();
+                this.closeModal();
+                this.renderSetupScreen();
+            }
+
+            removePlayer(id) {
+                if (this.players.length <= 3) return;
+                this.sound.playPop();
+                this.players = this.players.filter(p => p.id !== id);
+                this.renderSetupScreen();
+            }
+
+            openAddWordModal() {
+                this.sound.playPop();
+                const currentCat = this.categories.find(c => c.id === this.selectedCategoryId);
+                let html = `
+                    <h3 class="text-lg font-bold text-pop-pink mb-1">📝 [${currentCat.title}] 단어 추가</h3>
+                    <p class="text-xs text-gray-400 mb-3 font-nanum">원하는 비밀 제시어를 직접 추가해보세요!</p>
+                    <input type="text" id="newWordInput" placeholder="예: 탕후루, 포켓몬스터" class="w-full bg-gray-800 border-2 border-pop-pink rounded-xl p-3 text-white focus:outline-none mb-4 text-center font-bold" maxlength="12">
+                    <div class="flex gap-2">
+                        <button onclick="game.closeModal()" class="w-1/2 py-3 bg-gray-800 text-gray-300 font-bold rounded-xl btn-bounce">취소</button>
+                        <button onclick="game.confirmAddWord()" class="w-1/2 py-3 bg-pop-pink text-white font-bold rounded-xl btn-bounce pop-shadow-pink">추가하기</button>
+                    </div>
+                `;
+                this.openModal(html);
+                setTimeout(() => document.getElementById('newWordInput')?.focus(), 100);
+            }
+
+            confirmAddWord() {
+                const input = document.getElementById('newWordInput');
+                const word = input ? input.value.trim() : '';
+                if (!word) return;
+
+                const currentCat = this.categories.find(c => c.id === this.selectedCategoryId);
+                if (currentCat && !currentCat.words.includes(word)) {
+                    currentCat.words.push(word);
+                    localStorage.setItem('liar_categories', JSON.stringify(this.categories));
+                }
+
+                this.sound.playFanfare();
+                this.closeModal();
+                this.renderSetupScreen();
+            }
+
+            // --- Start Game Logic ---
+            startNewGame() {
+                if (this.players.length < 3) return;
+                
+                this.sound.playFanfare();
+                const currentCat = this.categories.find(c => c.id === this.selectedCategoryId);
+                this.secretWord = currentCat.words[Math.floor(Math.random() * currentCat.words.length)];
+                this.liarIndex = Math.floor(Math.random() * this.players.length);
+                this.currentAssignIdx = 0;
+
+                this.renderCardAssignScreen();
+            }
+
+            // --- SCREEN 2: Pass Phone / Secret Card Reveal ---
+            renderCardAssignScreen() {
+                const main = document.getElementById('mainScreen');
+                const p = this.players[this.currentAssignIdx];
+                const isLiar = this.currentAssignIdx === this.liarIndex;
+
+                let cardContent = '';
+                if (isLiar) {
+                    if (this.isBlankLiarMode) {
+                        cardContent = `
+                            <div class="text-6xl mb-3">👻</div>
+                            <span class="bg-pop-pink/20 text-pop-pink text-xs font-bold px-3 py-1 rounded-full border border-pop-pink mb-2">SPECIAL ROLE</span>
+                            <h2 class="text-3xl font-black text-pop-pink">블랭크 라이어!</h2>
+                            <p class="text-xs text-gray-300 font-nanum mt-2 px-4 text-center">당신은 제시어를 완전히 모릅니다!<br>시민들의 설명을 잘 듣고 맞춰보세요.</p>
+                        `;
+                    } else {
+                        cardContent = `
+                            <div class="text-6xl mb-3">🕵️‍♂️</div>
+                            <span class="bg-pop-yellow/20 text-pop-yellow text-xs font-bold px-3 py-1 rounded-full border border-pop-yellow mb-2">SECRET ROLE</span>
+                            <h2 class="text-3xl font-black text-pop-yellow">당신은 라이어!</h2>
+                            <p class="text-xs text-gray-300 font-nanum mt-2 px-4 text-center">제시어를 모른 채 연기하세요!<br>시민들을 완벽히 속여보세요.</p>
+                        `;
+                    }
+                } else {
+                    cardContent = `
+                        <div class="text-5xl mb-2">😊</div>
+                        <span class="bg-pop-green/20 text-pop-green text-xs font-bold px-3 py-1 rounded-full border border-pop-green mb-1">CIVILIAN</span>
+                        <div class="text-xs text-gray-400">비밀 제시어</div>
+                        <h2 class="text-3xl font-black text-pop-green mt-1 mb-2">${this.secretWord}</h2>
+                        <p class="text-xs text-gray-300 font-nanum px-4 text-center">라이어에게 힌트를 들키지 않게<br>재치있게 설명하세요!</p>
+                    `;
+                }
+
+                main.innerHTML = `
+                    <div class="flex flex-col items-center justify-between h-full py-2">
+                        <!-- Progress Header -->
+                        <div class="text-center">
+                            <span class="bg-gray-800 text-pop-yellow text-xs font-bold px-3 py-1 rounded-full border border-gray-700">
+                                차례 ${this.currentAssignIdx + 1} / ${this.players.length}
+                            </span>
+                            <h2 class="text-2xl font-black text-white mt-2 flex items-center justify-center gap-2">
+                                <span class="w-7 h-7 rounded-full ${p.avatar.bg} inline-flex items-center justify-center text-sm">${p.avatar.emoji}</span>
+                                <span class="text-pop-yellow">${p.name}</span> 님의 차례!
+                            </h2>
+                            <p class="text-xs text-gray-400 font-nanum mt-0.5">스마트폰을 ${p.name} 님에게만 전달해주세요!</p>
+                        </div>
+
+                        <!-- 3D Flip Card Container -->
+                        <div id="flipCardElement" class="flip-card w-full max-w-[280px] h-[340px] my-4 cursor-pointer" onclick="game.flipCard()">
+                            <div class="flip-card-inner">
+                                <!-- Card Front (Locked) -->
+                                <div class="flip-card-front bg-gradient-to-b from-gray-800 to-gray-900 border-4 border-pop-purple p-6 shadow-2xl flex flex-col justify-between items-center">
+                                    <div class="text-4xl text-pop-purple">🔒</div>
+                                    <div class="text-center">
+                                        <div class="w-20 h-20 rounded-full ${p.avatar.bg} flex items-center justify-center text-4xl mb-3 mx-auto shadow-lg border-2 border-white/20">
+                                            ${p.avatar.emoji}
+                                        </div>
+                                        <h3 class="text-lg font-bold text-white">${p.name}</h3>
+                                    </div>
+                                    <div class="bg-pop-purple/20 text-pop-purple text-xs font-bold px-4 py-2 rounded-xl border border-pop-purple/40 pulse-glow">
+                                        👆 터치해서 비밀 카드 확인하기
+                                    </div>
+                                </div>
+                                <!-- Card Back (Revealed Secret) -->
+                                <div class="flip-card-back bg-gradient-to-b from-gray-900 to-gray-950 border-4 ${isLiar ? 'border-pop-pink' : 'border-pop-green'} p-6 shadow-2xl">
+                                    ${cardContent}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Button -->
+                        <button id="nextCardBtn" disabled onclick="game.nextPlayerCard()" class="w-full py-4 bg-gray-800 text-gray-500 font-black text-lg rounded-2xl transition-all btn-bounce">
+                            비밀 카드를 먼저 확인하세요!
+                        </button>
+                    </div>
+                `;
+            }
+
+            flipCard() {
+                const card = document.getElementById('flipCardElement');
+                const btn = document.getElementById('nextCardBtn');
+                if (!card.classList.contains('flipped')) {
+                    this.sound.playFlip();
+                    card.classList.add('flipped');
+                    
+                    btn.disabled = false;
+                    btn.className = "w-full py-4 bg-pop-purple text-white font-black text-lg rounded-2xl pop-shadow-purple btn-bounce";
+                    btn.innerText = "🔒 비밀 유지하고 다음 친구에게 전달";
+                }
+            }
+
+            nextPlayerCard() {
+                this.sound.playPop();
+                this.currentAssignIdx++;
+                if (this.currentAssignIdx < this.players.length) {
+                    this.renderCardAssignScreen();
+                } else {
+                    this.startDiscussionPhase();
+                }
+            }
+
+            // --- SCREEN 3: Discussion & Speech Order ---
+            startDiscussionPhase() {
+                this.speechTurnIdx = 0;
+                this.timerSeconds = 60;
+                this.renderDiscussionScreen();
+                this.startTimer();
+            }
+
+            startTimer() {
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                this.timerInterval = setInterval(() => {
+                    this.timerSeconds--;
+                    const timerElem = document.getElementById('discussionTimer');
+                    if (timerElem) {
+                        timerElem.innerText = `${this.timerSeconds}초`;
+                        if (this.timerSeconds <= 10) {
+                            timerElem.className = "text-xl font-black text-rose-500 animate-ping";
+                            this.sound.playTick();
+                        }
+                    }
+                    if (this.timerSeconds <= 0) {
+                        clearInterval(this.timerInterval);
+                        this.startVotingPhase();
+                    }
+                }, 1000);
+            }
+
+            renderDiscussionScreen() {
+                const main = document.getElementById('mainScreen');
+                const currentSpeaker = this.players[this.speechTurnIdx];
+
+                let speakersListHtml = '';
+                this.players.forEach((p, idx) => {
+                    const isCurrent = idx === this.speechTurnIdx;
+                    speakersListHtml += `
+                        <div class="flex items-center gap-2 p-2 rounded-2xl border ${isCurrent ? 'bg-pop-purple/20 border-pop-purple scale-[1.02]' : 'bg-gray-800/60 border-gray-800 opacity-60'} transition-all">
+                            <div class="w-8 h-8 rounded-full ${p.avatar.bg} flex items-center justify-center text-sm font-bold">
+                                ${p.avatar.emoji}
+                            </div>
+                            <span class="text-sm font-bold ${isCurrent ? 'text-pop-yellow' : 'text-gray-300'}">${p.name}</span>
+                            ${isCurrent ? '<span class="ml-auto text-xs bg-pop-purple text-white px-2 py-0.5 rounded-full font-bold">발언 중 🎤</span>' : ''}
+                        </div>
+                    `;
+                });
+
+                const randomPrompt = HINT_PROMPTS[Math.floor(Math.random() * HINT_PROMPTS.length)];
+
+                main.innerHTML = `
+                    <div class="flex flex-col justify-between h-full py-1 space-y-3">
+                        <!-- Top Discussion Info -->
+                        <div class="flex justify-between items-center bg-gray-900 p-3 rounded-2xl border border-gray-800">
+                            <div>
+                                <span class="text-[10px] text-pop-yellow font-bold uppercase tracking-wider">주제 카테고리</span>
+                                <div class="text-sm font-bold text-white">${this.categories.find(c => c.id === this.selectedCategoryId).title}</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] text-gray-400 font-bold uppercase">남은 토론 시간</span>
+                                <div id="discussionTimer" class="text-xl font-black text-pop-pink">${this.timerSeconds}초</div>
+                            </div>
+                        </div>
+
+                        <!-- Current Speaker Spotlight -->
+                        <div class="bg-gradient-to-b from-gray-800 to-gray-900 p-5 rounded-3xl border-2 border-pop-yellow text-center shadow-xl relative overflow-hidden">
+                            <div class="text-xs text-pop-yellow font-bold mb-1">📢 힌트 말하기 순서</div>
+                            <div class="w-20 h-20 rounded-full ${currentSpeaker.avatar.bg} flex items-center justify-center text-4xl mx-auto my-2 border-4 border-pop-yellow shadow-lg pulse-glow">
+                                ${currentSpeaker.avatar.emoji}
+                            </div>
+                            <h3 class="text-xl font-black text-white">${currentSpeaker.name} 님의 차례</h3>
+                            <p class="text-xs text-gray-300 font-nanum mt-1">제시어에 대한 결정적 힌트를 한 문장으로 말해보세요!</p>
+
+                            <!-- Hint Generator Prompt Wheel -->
+                            <div class="mt-3 bg-gray-950/60 p-2.5 rounded-xl border border-gray-800 text-xs text-pop-yellow font-bold font-nanum">
+                                ${randomPrompt}
+                            </div>
+                        </div>
+
+                        <!-- Turn Order Tracker -->
+                        <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                            ${speakersListHtml}
+                        </div>
+
+                        <!-- Control Action Buttons -->
+                        <div class="flex gap-2">
+                            <button onclick="game.nextSpeaker()" class="w-1/2 py-3 bg-gray-800 text-white font-bold rounded-2xl border border-gray-700 btn-bounce text-sm">
+                                다음 친구 차례 ➡️
+                            </button>
+                            <button onclick="game.startVotingPhase()" class="w-1/2 py-3 bg-gradient-to-r from-pop-pink to-pop-purple text-white font-black rounded-2xl pop-shadow-pink btn-bounce text-sm">
+                                🗳️ 바로 투표하기
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            nextSpeaker() {
+                this.sound.playPop();
+                this.speechTurnIdx = (this.speechTurnIdx + 1) % this.players.length;
+                this.renderDiscussionScreen();
+            }
+
+            // --- SCREEN 4: Voting Phase ---
+            startVotingPhase() {
+                if (this.timerInterval) clearInterval(this.timerInterval);
+                this.sound.playSuspense();
+                this.votes = {};
+                this.renderVotingScreen();
+            }
+
+            renderVotingScreen() {
+                const main = document.getElementById('mainScreen');
+
+                let playersVoteGrid = '';
+                this.players.forEach(p => {
+                    const selected = this.votes['voter'] === p.id;
+                    playersVoteGrid += `
+                        <div onclick="game.selectVoteTarget(${p.id})" 
+                             class="p-4 rounded-2xl border-2 ${selected ? 'border-pop-pink bg-pop-pink/20 scale-[1.03]' : 'border-gray-800 bg-gray-800/80'} flex flex-col items-center justify-center cursor-pointer transition-all btn-bounce">
+                            <div class="w-14 h-14 rounded-full ${p.avatar.bg} flex items-center justify-center text-3xl mb-2 shadow-md">
+                                ${p.avatar.emoji}
+                            </div>
+                            <span class="font-bold text-white text-sm">${p.name}</span>
+                            ${selected ? '<span class="text-[10px] text-pop-pink font-black mt-1">지목됨 🎯</span>' : ''}
+                        </div>
+                    `;
+                });
+
+                main.innerHTML = `
+                    <div class="flex flex-col justify-between h-full py-2 space-y-3">
+                        <div class="text-center">
+                            <span class="bg-pop-pink/20 text-pop-pink text-xs font-bold px-3 py-1 rounded-full border border-pop-pink">FINAL VOTING</span>
+                            <h2 class="text-2xl font-black text-white mt-2">🕵️‍♂️ 라이어로 의심되는 친구 지목!</h2>
+                            <p class="text-xs text-gray-400 font-nanum mt-0.5">가장 많은 표를 받은 친구가 라이어 검거 대상이 됩니다.</p>
+                        </div>
+
+                        <!-- Grid of Suspects -->
+                        <div class="grid grid-cols-2 gap-3 my-auto">
+                            ${playersVoteGrid}
+                        </div>
+
+                        <!-- Reveal Action Button -->
+                        <button id="revealBtn" disabled onclick="game.revealGameResult()" class="w-full py-4 bg-gray-800 text-gray-500 font-black text-lg rounded-2xl transition-all btn-bounce">
+                            의심스러운 친구를 선택해주세요!
+                        </button>
+                    </div>
+                `;
+            }
+
+            selectVoteTarget(targetId) {
+                this.sound.playPop();
+                this.votes['voter'] = targetId;
+                
+                const btn = document.getElementById('revealBtn');
+                btn.disabled = false;
+                btn.className = "w-full py-4 bg-gradient-to-r from-pop-yellow to-pop-orange text-gray-950 font-black text-lg rounded-2xl pop-shadow-yellow btn-bounce";
+                btn.innerText = "🔍 최종 결과 공개하기!";
+
+                this.renderVotingScreen();
+            }
+
+            // --- SCREEN 5: Result & Celebration ---
+            revealGameResult() {
+                const suspectedId = this.votes['voter'];
+                const suspectPlayer = this.players.find(p => p.id === suspectedId);
+                const actualLiar = this.players[this.liarIndex];
+                const isLiarCaught = suspectedId === actualLiar.id;
+
+                if (isLiarCaught) {
+                    // Civilians Win! Award points to civilian players
+                    this.players.forEach((p, idx) => {
+                        if (idx !== this.liarIndex) p.wins++;
+                    });
+                    this.sound.playFanfare();
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    // Liar Wins! Award points to Liar
+                    actualLiar.wins += 2;
+                    this.sound.playSuspense();
+                }
+
+                const main = document.getElementById('mainScreen');
+                main.innerHTML = `
+                    <div class="flex flex-col items-center justify-between h-full py-2 text-center space-y-3">
+                        <div>
+                            <span class="bg-gray-800 text-pop-yellow text-xs font-bold px-3 py-1 rounded-full border border-gray-700">RESULT REVEAL</span>
+                            <h2 class="text-2xl font-black text-white mt-1">
+                                ${isLiarCaught ? '🎉 시민 승리! 라이어 검거 성공!' : '😈 라이어 승리! 속아버렸네요!'}
+                            </h2>
+                        </div>
+
+                        <!-- Result Card -->
+                        <div class="w-full bg-gradient-to-b from-gray-800 to-gray-900 border-2 ${isLiarCaught ? 'border-pop-green' : 'border-pop-pink'} p-5 rounded-3xl shadow-2xl space-y-4">
+                            <!-- Liar Identity -->
+                            <div>
+                                <div class="text-xs text-gray-400 font-bold mb-1">진짜 라이어의 정체는?</div>
+                                <div class="w-16 h-16 rounded-full ${actualLiar.avatar.bg} flex items-center justify-center text-3xl mx-auto mb-1 border-2 border-white/20 shadow-md">
+                                    ${actualLiar.avatar.emoji}
+                                </div>
+                                <h3 class="text-xl font-black text-pop-yellow">${actualLiar.name} 님!</h3>
+                            </div>
+
+                            <hr class="border-gray-800">
+
+                            <!-- Secret Word Reveal -->
+                            <div>
+                                <div class="text-xs text-gray-400 font-bold">비밀 제시어</div>
+                                <div class="text-2xl font-black text-pop-green mt-0.5">${this.secretWord}</div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="w-full space-y-2">
+                            <button onclick="game.startNewGame()" class="w-full py-3.5 bg-pop-purple hover:bg-purple-600 text-white font-black text-lg rounded-2xl pop-shadow-purple btn-bounce">
+                                🔄 같은 멤버로 한 판 더!
+                            </button>
+                            <button onclick="game.goHome()" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-sm rounded-2xl btn-bounce">
+                                🏠 메인 설정으로 돌아가기
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize App on Load
+        let game;
+        window.addEventListener('DOMContentLoaded', () => {
+            game = new LiarGameApp();
+        });
+    </script>
+</body>
+</html>
